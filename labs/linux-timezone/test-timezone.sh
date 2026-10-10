@@ -2,18 +2,15 @@
 
 set -eu
 
-echo "===== RUNNING KRONOS LAB 001 ====="
+echo "===== KRONOS LAB 001 TESTS ====="
 
 output="$(podman run --rm \
   --network=none \
   --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
   docker.io/library/fedora:43 \
-  bash /lab.sh)"
+  bash /lab.sh Africa/Lagos)"
 
 printf '%s\n' "$output"
-
-echo
-echo "===== VERIFYING RESULTS ====="
 
 check() {
     local description="$1"
@@ -27,11 +24,35 @@ check() {
     fi
 }
 
-check "Lab title" "KRONOS LAB 001: TIME ZONES"
-check "UTC time inspection" "Current UTC time:"
-check "UTC time-zone offset" "UTC +0000"
-check "UTC configuration path" "/usr/share/zoneinfo/Etc/UTC"
-check "Lab completion" "Lab inspection complete."
+echo
+echo "===== VALID TIME-ZONE TESTS ====="
+
+check "Selected time zone is Lagos" \
+    "Selected time zone: Africa/Lagos"
+
+check "Lagos offset is +0100" \
+    "WAT +0100"
+
+check "Container default remains UTC" \
+    "UTC +0000"
+
+check "Lab completes successfully" \
+    "Lab inspection complete."
 
 echo
-echo "ALL CHECKS PASSED"
+echo "===== INVALID TIME-ZONE TEST ====="
+
+if podman run --rm \
+    --network=none \
+    --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
+    docker.io/library/fedora:43 \
+    bash /lab.sh Invalid/NotARealZone
+then
+    echo "FAIL: Invalid time zone was accepted"
+    exit 1
+else
+    echo "PASS: Invalid time zone rejected"
+fi
+
+echo
+echo "ALL TESTS PASSED"
