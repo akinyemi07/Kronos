@@ -2,6 +2,8 @@
 
 set -eu
 
+echo "===== RUNNING KRONOS LAB 001 ====="
+
 output="$(podman run --rm \
   --network=none \
   --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
@@ -11,35 +13,25 @@ output="$(podman run --rm \
 printf '%s\n' "$output"
 
 echo
-echo "===== VERIFYING LAB RESULTS ====="
+echo "===== VERIFYING RESULTS ====="
 
-if grep -q "KRONOS LAB 001: TIME ZONES" <<< "$output"; then
-    echo "PASS: Lab title found"
-else
-    echo "FAIL: Lab title missing"
-    exit 1
-fi
+check() {
+    local description="$1"
+    local pattern="$2"
 
-if grep -q "Current UTC time:" <<< "$output"; then
-    echo "PASS: UTC time check found"
-else
-    echo "FAIL: UTC time check missing"
-    exit 1
-fi
+    if grep -Fq "$pattern" <<< "$output"; then
+        echo "PASS: $description"
+    else
+        echo "FAIL: $description"
+        exit 1
+    fi
+}
 
-if grep -q "UTC +0000" <<< "$output"; then
-    echo "PASS: Container reports UTC"
-else
-    echo "FAIL: Expected UTC configuration not found"
-    exit 1
-fi
-
-if grep -q "Lab inspection complete." <<< "$output"; then
-    echo "PASS: Lab completed"
-else
-    echo "FAIL: Completion message missing"
-    exit 1
-fi
+check "Lab title" "KRONOS LAB 001: TIME ZONES"
+check "UTC time inspection" "Current UTC time:"
+check "UTC time-zone offset" "UTC +0000"
+check "UTC configuration path" "/usr/share/zoneinfo/Etc/UTC"
+check "Lab completion" "Lab inspection complete."
 
 echo
 echo "ALL CHECKS PASSED"
