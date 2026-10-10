@@ -57,3 +57,13 @@ fi
 
 echo
 echo "ALL TESTS PASSED"
+
+echo
+echo "===== MISSING ARGUMENT TEST ====="
+
+if ./scripts/run-lab.sh; then
+    echo "FAIL: Missing lab ID was accepted"
+    exit 1
+else
+    echo "PASS: Missing lab ID rejected"
+fi
