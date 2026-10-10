@@ -25,11 +25,7 @@ By completing this lab, you should be able to:
 From the root of the Kronos repository, run:
 
 ```bash
-podman run --rm \
-  --network=none \
-  --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
-  docker.io/library/fedora:43 \
-  bash /lab.sh
+./scripts/run-lab.sh linux-timezone
 ```
 
 The default time zone is UTC.
@@ -37,14 +33,12 @@ The default time zone is UTC.
 To inspect another time zone, pass its name as an argument:
 
 ```bash
-podman run --rm \
-  --network=none \
-  --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
-  docker.io/library/fedora:43 \
-  bash /lab.sh Africa/Lagos
+./scripts/run-lab.sh linux-timezone Africa/Lagos
 ```
 
 Other examples include `Europe/London` and `Asia/Tokyo`.
+
+The central runner starts a disposable Fedora container, disables networking, mounts the lab script read-only, and removes the container after execution.
 
 ## Run the tests
 
