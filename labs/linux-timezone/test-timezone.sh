@@ -4,11 +4,7 @@ set -eu
 
 echo "===== KRONOS LAB 001 TESTS ====="
 
-output="$(podman run --rm \
-  --network=none \
-  --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
-  docker.io/library/fedora:43 \
-  bash /lab.sh Africa/Lagos)"
+output="$(./scripts/run-lab.sh linux-timezone Africa/Lagos)"
 
 printf '%s\n' "$output"
 
@@ -42,16 +38,21 @@ check "Lab completes successfully" \
 echo
 echo "===== INVALID TIME-ZONE TEST ====="
 
-if podman run --rm \
-    --network=none \
-    --volume "$PWD/labs/linux-timezone/check-timezone.sh:/lab.sh:ro,Z" \
-    docker.io/library/fedora:43 \
-    bash /lab.sh Invalid/NotARealZone
-then
+if ./scripts/run-lab.sh linux-timezone Invalid/NotARealZone; then
     echo "FAIL: Invalid time zone was accepted"
     exit 1
 else
     echo "PASS: Invalid time zone rejected"
+fi
+
+echo
+echo "===== UNKNOWN LAB TEST ====="
+
+if ./scripts/run-lab.sh unknown-lab; then
+    echo "FAIL: Unknown lab was accepted"
+    exit 1
+else
+    echo "PASS: Unknown lab rejected"
 fi
 
 echo
