@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type commandRunner func(name string, args ...string) error
@@ -24,11 +25,52 @@ func main() {
 func runLab(labID string, labArgs []string, execute commandRunner) error {
 	switch labID {
 	case "linux-timezone":
-		args := append([]string{"scripts/run-lab.sh", labID}, labArgs...)
+		root, err := findProjectRoot()
+		if err != nil {
+			return err
+		}
+
+		runnerPath := filepath.Join(root, "scripts", "run-lab.sh")
+		args := append([]string{runnerPath, labID}, labArgs...)
 		return execute("bash", args...)
+
 	default:
 		return fmt.Errorf("unknown lab %q", labID)
 	}
+}
+
+func findProjectRoot() (string, error) {
+	if root := os.Getenv("KRONOS_ROOT"); root != "" {
+		root, err := filepath.Abs(root)
+		if err != nil {
+			return "", fmt.Errorf("resolve KRONOS_ROOT: %w", err)
+		}
+
+		if _, err := os.Stat(filepath.Join(root, "scripts", "run-lab.sh")); err != nil {
+			return "", fmt.Errorf("KRONOS_ROOT %q does not contain scripts/run-lab.sh", root)
+		}
+
+		return root, nil
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("get working directory: %w", err)
+	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "scripts", "run-lab.sh")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return "", fmt.Errorf("Kronos project root not found; set KRONOS_ROOT to the repository path")
 }
 
 func executeCommand(name string, args ...string) error {

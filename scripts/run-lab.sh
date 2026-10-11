@@ -2,6 +2,9 @@
 
 set -eu
 
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(dirname "$script_dir")"
+
 usage() {
     echo "Usage: $0 <lab-id> [lab-arguments...]" >&2
     echo "Example: $0 linux-timezone Africa/Lagos" >&2
@@ -24,6 +27,8 @@ case "$lab_id" in
         usage
         ;;
 esac
+
+lab_script="$project_root/$lab_script"
 
 if [ ! -f "$lab_script" ]; then
     echo "ERROR: Lab script not found: $lab_script" >&2
